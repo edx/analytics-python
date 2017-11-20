@@ -32,7 +32,7 @@ class Client(object):
                  send=True, on_error=None):
         require('write_key', write_key, string_types)
 
-        log.info("import queue from {path}".format(
+        self.log.info("import queue from {path}".format(
             path=os.path.abspath(queue.__file__)
         ))
 
