@@ -3,6 +3,7 @@ from uuid import uuid4
 import logging
 import numbers
 import atexit
+import os
 
 from dateutil.tz import tzutc
 from six import string_types
@@ -12,9 +13,12 @@ from analytics.consumer import Consumer
 from analytics.version import VERSION
 
 try:
-    import queue
+    from gevent import queue
 except:
-    import Queue as queue
+    try:
+        import queue
+    except:
+        import Queue as queue
 
 
 ID_TYPES = (numbers.Number, string_types)
@@ -27,6 +31,10 @@ class Client(object):
     def __init__(self, write_key=None, host=None, debug=False, max_queue_size=10000,
                  send=True, on_error=None):
         require('write_key', write_key, string_types)
+
+        log.info("import queue from {path}".format(
+            path=os.path.abspath(queue.__file__)
+        ))
 
         self.queue = queue.Queue(max_queue_size)
         self.consumer = Consumer(self.queue, write_key, host=host, on_error=on_error)
