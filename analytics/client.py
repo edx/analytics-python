@@ -4,6 +4,7 @@ import logging
 import numbers
 import atexit
 import os
+import sys
 
 from dateutil.tz import tzutc
 from six import string_types
@@ -13,12 +14,9 @@ from analytics.consumer import Consumer
 from analytics.version import VERSION
 
 try:
-    from gevent import queue
+    import queue
 except:
-    try:
-        import queue
-    except:
-        import Queue as queue
+    import Queue as queue
 
 
 ID_TYPES = (numbers.Number, string_types)
@@ -31,10 +29,6 @@ class Client(object):
     def __init__(self, write_key=None, host=None, debug=False, max_queue_size=10000,
                  send=True, on_error=None):
         require('write_key', write_key, string_types)
-
-        self.log.info("import queue from {path}".format(
-            path=os.path.abspath(queue.__file__)
-        ))
 
         self.queue = queue.Queue(max_queue_size)
         self.consumer = Consumer(self.queue, write_key, host=host, on_error=on_error)
@@ -216,6 +210,9 @@ class Client(object):
 
         msg = clean(msg)
         self.log.debug('queueing: %s', msg)
+        self.log.info("import queue from {path}".format(
+            path=os.path.abspath(self.queue.__class__.__module__.__file__)
+        ))
 
         # if send is False, return msg as if it was successfully queued
         if not self.send:
