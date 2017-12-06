@@ -3,25 +3,18 @@ from uuid import uuid4
 import logging
 import numbers
 import atexit
-import os
 
 from dateutil.tz import tzutc
+from gevent import queue
 from six import string_types
 
 from analytics.utils import guess_timezone, clean
 from analytics.consumer import Consumer
 from analytics.version import VERSION
 
-try:
-    from gevent import queue
-except:
-    try:
-        import queue
-    except:
-        import Queue as queue
-
 
 ID_TYPES = (numbers.Number, string_types)
+JOIN_TIMEOUT_SECONDS = 1
 
 
 class Client(object):
@@ -32,11 +25,7 @@ class Client(object):
                  send=True, on_error=None):
         require('write_key', write_key, string_types)
 
-        self.log.info("import queue from {path}".format(
-            path=os.path.abspath(queue.__file__)
-        ))
-
-        self.queue = queue.Queue(max_queue_size)
+        self.queue = queue.JoinableQueue(max_queue_size)
         self.consumer = Consumer(self.queue, write_key, host=host, on_error=on_error)
         self.write_key = write_key
         self.on_error = on_error
@@ -233,7 +222,7 @@ class Client(object):
         """Forces a flush from the internal queue to the server"""
         queue = self.queue
         size = queue.qsize()
-        queue.join()
+        queue.join(JOIN_TIMEOUT_SECONDS)
         # Note that this message may not be precise, because of threading.
         self.log.debug('successfully flushed about %s items.', size)
 
