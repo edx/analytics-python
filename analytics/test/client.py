@@ -215,6 +215,7 @@ class TestClient(unittest.TestCase):
         # a race condition. We do our best to load it up though.
         client.flush()
         # Make sure that the client queue is empty after flushing
+        time.sleep(2)
         self.assertTrue(client.queue.empty())
 
     def test_overflow(self):
