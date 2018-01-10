@@ -230,7 +230,7 @@ class Client(object):
         """Ends the consumer thread once the queue is empty. Blocks execution until finished"""
         self.consumer.pause()
         try:
-            self.consumer.join()
+            self.consumer.join(JOIN_TIMEOUT_SECONDS)
         except RuntimeError:
             # consumer thread has not started
             pass
